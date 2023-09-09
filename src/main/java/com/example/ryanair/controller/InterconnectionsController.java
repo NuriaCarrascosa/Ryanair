@@ -2,6 +2,7 @@ package com.example.ryanair.controller;
 
 import com.example.ryanair.exception.InvalidInputException;
 import com.example.ryanair.model.Flight;
+import com.example.ryanair.model.Route;
 import com.example.ryanair.service.InterconnectionsService;
 import lombok.extern.log4j.Log4j2;
 import org.json.JSONException;

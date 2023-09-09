@@ -20,7 +20,7 @@ public class SchedulesAPI {
     private final String baseUri = "https://services-api.ryanair.com/timtbl/3/schedules/";
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-    public List<Flight> getSchedule(String departure, String arrival, String year, String month) throws JSONException {
+    public List<Flight> getSchedules(String departure, String arrival, String year, String month) throws JSONException {
         List<Flight> flightList = new ArrayList<>();
 
         JSONObject jsonResponse = getJsonResponse(departure, arrival, year, month);
@@ -43,7 +43,7 @@ public class SchedulesAPI {
 
         if(flightList.isEmpty()){
             log.info("No hay vuelos con las condiciones indicadas: de "
-                    + departure + " a " + arrival + " " + month + "-" + year);
+                    + departure + " a " + arrival + " " + month + "-" + year + ".");
         }
 
         return flightList;
@@ -51,7 +51,6 @@ public class SchedulesAPI {
 
     private Flight parseFlight(String year, String month, int day, JSONObject jsonFlight) throws JSONException {
         return new Flight(
-                (String) jsonFlight.get("carrierCode"),
                 Integer.parseInt((String) jsonFlight.get("number")),
                 LocalTime.parse((String) jsonFlight.get("departureTime"), dateTimeFormatter),
                 LocalTime.parse((String) jsonFlight.get("arrivalTime"), dateTimeFormatter),
