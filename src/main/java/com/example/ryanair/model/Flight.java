@@ -1,15 +1,18 @@
 package com.example.ryanair.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalTime;
 
 @Data
+@AllArgsConstructor
 public class Flight {
-    private String carrierCode; // this attribute is not specified on the requirements (pdf)
+    private String carrierCode;
     private int flightNumber;
     private LocalTime departureTime;
     private LocalTime arrivalTime;
+    private int year;
     private int month;
     private int day;
 }
