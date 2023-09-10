@@ -17,8 +17,13 @@ import java.util.List;
 @Log4j2
 public class SchedulesAPI {
 
-    private final String baseUri = "https://services-api.ryanair.com/timtbl/3/schedules/";
-    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    public static final DateTimeFormatter hourMinuteFormat = DateTimeFormatter.ofPattern("HH:mm");
+    public static final String baseSchedulesAPIUri = "https://services-api.ryanair.com/timtbl/3/schedules/";
+    private final RestTemplate restTemplate;
+
+    public SchedulesAPI(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     public List<Flight> getSchedules(String departure, String arrival, String year, String month) throws JSONException {
         List<Flight> flightList = new ArrayList<>();
@@ -37,7 +42,7 @@ public class SchedulesAPI {
                 flightList.add(parseFlight(year, month, day, jsonFlight));
 
                 log.info("Para el día " + day + "-" + month + "-" + year
-                        + " hay " + jsonDaysResponse.length() + " vuelos.");
+                        + " hay " + jsonFlightsResponse.length() + " vuelos.");
             }
         }
 
@@ -52,16 +57,15 @@ public class SchedulesAPI {
     private Flight parseFlight(String year, String month, int day, JSONObject jsonFlight) throws JSONException {
         return new Flight(
                 Integer.parseInt((String) jsonFlight.get("number")),
-                LocalTime.parse((String) jsonFlight.get("departureTime"), dateTimeFormatter),
-                LocalTime.parse((String) jsonFlight.get("arrivalTime"), dateTimeFormatter),
+                LocalTime.parse((String) jsonFlight.get("departureTime"), hourMinuteFormat),
+                LocalTime.parse((String) jsonFlight.get("arrivalTime"), hourMinuteFormat),
                 Integer.parseInt(year),
                 Integer.parseInt(month),
                 day);
     }
 
     private JSONObject getJsonResponse(String departure, String arrival, String year, String month) throws JSONException {
-        String uri = baseUri + departure + "/" + arrival + "/years/" + year + "/months/" + month;
-        RestTemplate restTemplate = new RestTemplate();
+        String uri = baseSchedulesAPIUri + departure + "/" + arrival + "/years/" + year + "/months/" + month;
         String stringResponse = restTemplate.getForObject(uri, String.class);
         return new JSONObject(stringResponse);
     }

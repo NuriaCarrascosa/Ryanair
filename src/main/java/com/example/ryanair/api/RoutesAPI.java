@@ -15,7 +15,12 @@ import java.util.List;
 @Log4j2
 public class RoutesAPI {
 
-    private final String uri = "https://services-api.ryanair.com/views/locate/3/routes";
+    public static final String routesAPIUri = "https://services-api.ryanair.com/views/locate/3/routes";
+    private final RestTemplate restTemplate;
+
+    public RoutesAPI(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     public List<Route> getRoutes() throws JSONException {
         List<Route> routeList = new ArrayList<>();
@@ -47,8 +52,7 @@ public class RoutesAPI {
     }
 
     private JSONArray getJsonResponse() throws JSONException {
-        RestTemplate restTemplate = new RestTemplate();
-        String stringResponse = restTemplate.getForObject(uri, String.class);
+        String stringResponse = restTemplate.getForObject(routesAPIUri, String.class);
         return new JSONArray(stringResponse);
     }
 

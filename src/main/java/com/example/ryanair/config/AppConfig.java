@@ -1,16 +1,15 @@
 package com.example.ryanair.config;
 
-import com.example.ryanair.api.RoutesAPI;
-import com.example.ryanair.api.SchedulesAPI;
-import com.example.ryanair.service.InterconnectionsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class AppConfig {
 
-
-
-
+    @Bean
+    public RestTemplate restTemplate(){
+        return new RestTemplate();
+    }
 
 }
