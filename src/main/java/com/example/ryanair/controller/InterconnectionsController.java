@@ -2,6 +2,7 @@ package com.example.ryanair.controller;
 
 import com.example.ryanair.exception.InvalidInputException;
 import com.example.ryanair.model.Flight;
+import com.example.ryanair.model.InterconnectionsResponse;
 import com.example.ryanair.model.Route;
 import com.example.ryanair.service.InterconnectionsService;
 import lombok.extern.log4j.Log4j2;
@@ -22,8 +23,8 @@ public class InterconnectionsController {
 
     @GetMapping("/ryanair/interconnections")
     @ResponseBody
-    public List<Flight> getInterconnections(@RequestParam String departure, String arrival,
-                                            String departureDateTime, String arrivalDateTime){
+    public InterconnectionsResponse getInterconnections(@RequestParam String departure, String arrival,
+                                                              String departureDateTime, String arrivalDateTime){
 
         try {
             checkInputParameters(departure, arrival, departureDateTime, arrivalDateTime);
