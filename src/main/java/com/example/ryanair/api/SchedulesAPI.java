@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -17,15 +18,15 @@ import java.util.List;
 @Log4j2
 public class SchedulesAPI {
 
-    public static final DateTimeFormatter hourMinuteFormat = DateTimeFormatter.ofPattern("HH:mm");
-    public static final String baseSchedulesAPIUri = "https://services-api.ryanair.com/timtbl/3/schedules/";
+    public static final DateTimeFormatter HOUR_MINUTE_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+    public static final String BASE_SCHEDULES_API_URI = "https://services-api.ryanair.com/timtbl/3/schedules/";
     private final RestTemplate restTemplate;
 
     public SchedulesAPI(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
-    public List<Flight> getSchedules(String departure, String arrival, String year, String month) throws JSONException {
+    public List<Flight> getAllSchedules(String departure, String arrival, int year, int month) throws JSONException {
         List<Flight> flightList = new ArrayList<>();
 
         JSONObject jsonResponse = getJsonResponse(departure, arrival, year, month);
@@ -39,33 +40,32 @@ public class SchedulesAPI {
 
             for(int j = 0; j < jsonFlightsResponse.length(); j++){
                 JSONObject jsonFlight = jsonFlightsResponse.getJSONObject(j);
-                flightList.add(parseFlight(year, month, day, jsonFlight));
-
-                log.info("Para el día " + day + "-" + month + "-" + year
-                        + " hay " + jsonFlightsResponse.length() + " vuelos.");
+                flightList.add(parseFlight(year, month, day, jsonFlight, departure, arrival));
             }
-        }
-
-        if(flightList.isEmpty()){
-            log.info("No hay vuelos con las condiciones indicadas: de "
-                    + departure + " a " + arrival + " " + month + "-" + year + ".");
         }
 
         return flightList;
     }
 
-    private Flight parseFlight(String year, String month, int day, JSONObject jsonFlight) throws JSONException {
-        return new Flight(
-                Integer.parseInt((String) jsonFlight.get("number")),
-                LocalTime.parse((String) jsonFlight.get("departureTime"), hourMinuteFormat),
-                LocalTime.parse((String) jsonFlight.get("arrivalTime"), hourMinuteFormat),
-                Integer.parseInt(year),
-                Integer.parseInt(month),
-                day);
+    public List<Flight> getSchedulesByDay(String departure, String arrival, int year, int month, int day) throws JSONException {
+        List<Flight> flightList = getAllSchedules(departure, arrival, year, month);
+        return flightList.stream().filter(flight -> flight.getArrivalDateTime().getDayOfMonth()==day).toList();
     }
 
-    private JSONObject getJsonResponse(String departure, String arrival, String year, String month) throws JSONException {
-        String uri = baseSchedulesAPIUri + departure + "/" + arrival + "/years/" + year + "/months/" + month;
+    private Flight parseFlight(int year, int month, int day, JSONObject jsonFlight, String departure, String arrival) throws JSONException {
+        LocalTime departureTime = LocalTime.parse((String) jsonFlight.get("departureTime"), HOUR_MINUTE_FORMAT);
+        LocalTime arrivalTime = LocalTime.parse((String) jsonFlight.get("arrivalTime"), HOUR_MINUTE_FORMAT);
+
+        LocalDateTime departureLocalDateTime = LocalDateTime.of(year, month, day, departureTime.getHour(), departureTime.getMinute());
+        LocalDateTime arrivalLocalDateTime = LocalDateTime.of(year, month, day, arrivalTime.getHour(), arrivalTime.getMinute());
+
+        int flightNumber = Integer.parseInt((String) jsonFlight.get("number"));
+
+        return new Flight(flightNumber, departureLocalDateTime, arrivalLocalDateTime, departure, arrival);
+    }
+
+    private JSONObject getJsonResponse(String departure, String arrival, int year, int month) throws JSONException {
+        String uri = BASE_SCHEDULES_API_URI + departure + "/" + arrival + "/years/" + year + "/months/" + month;
         String stringResponse = restTemplate.getForObject(uri, String.class);
         return new JSONObject(stringResponse);
     }

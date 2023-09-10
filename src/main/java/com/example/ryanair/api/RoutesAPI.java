@@ -15,14 +15,14 @@ import java.util.List;
 @Log4j2
 public class RoutesAPI {
 
-    public static final String routesAPIUri = "https://services-api.ryanair.com/views/locate/3/routes";
+    public static final String ROUTES_API_URI = "https://services-api.ryanair.com/views/locate/3/routes";
     private final RestTemplate restTemplate;
 
     public RoutesAPI(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
-    public List<Route> getRoutes() throws JSONException {
+    public List<Route> getAllRoutes() throws JSONException {
         List<Route> routeList = new ArrayList<>();
 
         JSONArray jsonResponse = getJsonResponse();
@@ -31,8 +31,6 @@ public class RoutesAPI {
             JSONObject jsonRoute = (JSONObject) jsonResponse.get(i);
             routeList.add(parseRoute(jsonRoute));
         }
-
-        log.info("Hay " + jsonResponse.length() + " rutas definidas.");
 
         return routeList;
     }
@@ -52,7 +50,7 @@ public class RoutesAPI {
     }
 
     private JSONArray getJsonResponse() throws JSONException {
-        String stringResponse = restTemplate.getForObject(routesAPIUri, String.class);
+        String stringResponse = restTemplate.getForObject(ROUTES_API_URI, String.class);
         return new JSONArray(stringResponse);
     }
 

@@ -3,15 +3,14 @@ package com.example.ryanair.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 public class Flight {
     private int flightNumber;
-    private LocalTime departureTime;
-    private LocalTime arrivalTime;
-    private int year;
-    private int month;
-    private int day;
+    private LocalDateTime departureDateTime;
+    private LocalDateTime arrivalDateTime;
+    private String departure;
+    private String arrival;
 }
