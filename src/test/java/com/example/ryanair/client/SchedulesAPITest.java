@@ -1,6 +1,7 @@
-package com.example.ryanair.api;
+package com.example.ryanair.client;
 
 import com.example.ryanair.model.Flight;
+import com.example.ryanair.model.InterconnectedFlightsRequest;
 import com.example.ryanair.utils.TestUtils;
 import lombok.SneakyThrows;
 import org.json.simple.JSONObject;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.ryanair.api.SchedulesAPI.BASE_SCHEDULES_API_URI;
+import static com.example.ryanair.client.SchedulesAPI.BASE_SCHEDULES_API_URI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -24,12 +25,20 @@ import static org.mockito.Mockito.*;
 public class SchedulesAPITest {
 
     private static SchedulesAPI schedulesAPITestee;
+    private static InterconnectedFlightsRequest interconnectedFlightsRequest;
     private static final int FLIGHT_NUMBER = 1926;
     private static final String DEPARTURE = "DUB";
     private static final String ARRIVAL = "WRO";
     private static final int YEAR = 2023;
     private static final int MONTH = 6;
+    private static final int DAY = 1;
+    private static final int DEPARTURE_HOUR = 18;
+    private static final int DEPARTURE_MINUTES = 0;
+    private static final int ARRIVAL_HOUR = 21;
+    private static final int ARRIVAL_MINUTES = 35;
     private static final String URI = BASE_SCHEDULES_API_URI + DEPARTURE + "/" + ARRIVAL + "/years/" + YEAR + "/months/" + MONTH;
+    private static final LocalDateTime DEPARTURE_DATE_TIME = LocalDateTime.of(YEAR, MONTH, DAY, DEPARTURE_HOUR, DEPARTURE_MINUTES);
+    private static final LocalDateTime ARRIVAL_DATE_TIME = LocalDateTime.of(YEAR, MONTH, DAY, ARRIVAL_HOUR, ARRIVAL_MINUTES);
 
     @Mock
     private static RestTemplate restTemplateMock;
@@ -38,6 +47,8 @@ public class SchedulesAPITest {
     void initialize(){
         MockitoAnnotations.openMocks(this);
         schedulesAPITestee = new SchedulesAPI(restTemplateMock);
+
+        interconnectedFlightsRequest = new InterconnectedFlightsRequest(DEPARTURE, ARRIVAL, DEPARTURE_DATE_TIME, ARRIVAL_DATE_TIME);
     }
 
     @SneakyThrows
@@ -49,8 +60,8 @@ public class SchedulesAPITest {
 
         List<Flight> expectedFlightList = new ArrayList<>();
         expectedFlightList.add(new Flight(FLIGHT_NUMBER,
-                LocalDateTime.of(YEAR, MONTH, 1, 18, 0),
-                LocalDateTime.of(YEAR, MONTH, 1, 21, 35),
+                LocalDateTime.of(YEAR, MONTH, DAY, DEPARTURE_HOUR, DEPARTURE_MINUTES),
+                LocalDateTime.of(YEAR, MONTH, DAY, ARRIVAL_HOUR, ARRIVAL_MINUTES),
                 DEPARTURE, ARRIVAL));
         expectedFlightList.add(new Flight(FLIGHT_NUMBER,
                 LocalDateTime.of(YEAR, MONTH, 3, 17, 25),
@@ -58,7 +69,7 @@ public class SchedulesAPITest {
                 DEPARTURE, ARRIVAL));
 
         //Test
-        List<Flight> resultFlightList = schedulesAPITestee.getAllSchedules(DEPARTURE, ARRIVAL, YEAR, MONTH);
+        List<Flight> resultFlightList = schedulesAPITestee.getAllSchedules(interconnectedFlightsRequest);
 
         //Verify
         assertEquals(expectedFlightList, resultFlightList);
@@ -80,7 +91,7 @@ public class SchedulesAPITest {
         when(restTemplateMock.getForObject(URI, String.class)).thenReturn(jsonSchedule.toJSONString());
 
         //Test
-        assertThrows(Exception.class, () -> schedulesAPITestee.getAllSchedules(DEPARTURE, ARRIVAL, YEAR, MONTH));
+        assertThrows(Exception.class, () -> schedulesAPITestee.getAllSchedules(interconnectedFlightsRequest));
 
         //Verify
         verify(restTemplateMock, times(1)).getForObject(URI, String.class);

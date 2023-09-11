@@ -12,4 +12,17 @@ public class AppConfig {
         return new RestTemplate();
     }
 
+    /*
+    @Bean
+    public InterfazSchedulesAPI schedulesAPI(RestTemplate restTemplate){
+        return new SchedulesAPI(restTemplate);
+    }
+
+    @Bean
+    public InterfazRoutesAPI routesAPI(RestTemplate restTemplate){
+        return new RoutesAPI(restTemplate);
+    }
+
+     */
+
 }

@@ -1,16 +1,15 @@
-package com.example.ryanair.model;
+package com.example.ryanair.model.response;
 
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static com.example.ryanair.service.InterconnectionsService.MIN_NUM_OF_STOPS;
 
 @Data
 public class DirectFlightsResponse extends FlightsResponse {
+    private static final int NUM_OF_STOPS = 0;
+
     public DirectFlightsResponse(List<FlightInfoResponse> legs) {
-        this.stops = MIN_NUM_OF_STOPS;
+        this.stops = NUM_OF_STOPS;
         this.legs = legs;
     }
 }

@@ -9,13 +9,15 @@ import java.time.LocalDateTime;
 @Setter
 public class InterconnectedFlight extends Flight {
 
-    private int secondFlightNumber;
+    //-> List<Flight> flights;
+
+    private String secondFlightNumber;
     private String stopAirport;
     private LocalDateTime stopArrivalDateTime;
     private LocalDateTime stopDepartureDateTime;
 
-    public InterconnectedFlight(int firstFlightNumber, LocalDateTime departureDateTime, LocalDateTime arrivalDateTime,
-                                String departure, String arrival, int secondFlightNumber, String stopAirport,
+    public InterconnectedFlight(String firstFlightNumber, LocalDateTime departureDateTime, LocalDateTime arrivalDateTime,
+                                String departure, String arrival, String secondFlightNumber, String stopAirport,
                                 LocalDateTime stopArrivalDateTime, LocalDateTime stopDepartureDateTime) {
         super(firstFlightNumber, departureDateTime, arrivalDateTime, departure, arrival);
         this.secondFlightNumber = secondFlightNumber;

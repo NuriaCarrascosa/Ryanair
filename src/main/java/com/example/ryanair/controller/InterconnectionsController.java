@@ -1,21 +1,26 @@
 package com.example.ryanair.controller;
 
 import com.example.ryanair.exception.InvalidInputException;
-import com.example.ryanair.model.Flight;
-import com.example.ryanair.model.InterconnectionsResponse;
-import com.example.ryanair.model.Route;
+import com.example.ryanair.model.InterconnectedFlightsRequest;
+import com.example.ryanair.model.response.InterconnectionsResponse;
 import com.example.ryanair.service.InterconnectionsService;
 import lombok.extern.log4j.Log4j2;
-import org.json.JSONException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @RestController
 @Log4j2
 public class InterconnectionsController {
 
     private final InterconnectionsService interconnectionsService;
+    public static final DateTimeFormatter ISO_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern(
+            "yyyy-MM-dd'T'HH:mm", Locale.ENGLISH);
 
     public InterconnectionsController(InterconnectionsService interconnectionsService) {
         this.interconnectionsService = interconnectionsService;
@@ -26,10 +31,16 @@ public class InterconnectionsController {
     public InterconnectionsResponse getInterconnections(@RequestParam String departure, String arrival,
                                                               String departureDateTime, String arrivalDateTime){
 
+        // TODO: Ver si se puede llamar al Get con la clase InterconnectedFlightRequest
+
         try {
             checkInputParameters(departure, arrival, departureDateTime, arrivalDateTime);
-            return this.interconnectionsService.getInterconnections(departure, departureDateTime,
-                    arrival, arrivalDateTime);
+            return this.interconnectionsService.getInterconnections(
+                    new InterconnectedFlightsRequest(
+                            departure,
+                            arrival,
+                            LocalDateTime.parse(departureDateTime, ISO_DATE_TIME_FORMAT),
+                            LocalDateTime.parse(arrivalDateTime, ISO_DATE_TIME_FORMAT)));
         } catch (Exception exception) {
             exception.printStackTrace();
             log.error(exception.getMessage());

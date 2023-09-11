@@ -1,4 +1,4 @@
-package com.example.ryanair.api;
+package com.example.ryanair.client;
 
 import com.example.ryanair.model.Route;
 import com.example.ryanair.utils.TestUtils;
@@ -15,7 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.ryanair.api.RoutesAPI.ROUTES_API_URI;
+import static com.example.ryanair.client.RoutesAPI.ROUTES_API_URI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
