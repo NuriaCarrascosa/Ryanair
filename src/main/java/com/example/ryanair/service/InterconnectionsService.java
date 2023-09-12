@@ -3,7 +3,7 @@ package com.example.ryanair.service;
 import com.example.ryanair.client.InterfazRoutesAPI;
 import com.example.ryanair.client.InterfazSchedulesAPI;
 import com.example.ryanair.model.Flight;
-import com.example.ryanair.model.FlightRequest;
+import com.example.ryanair.model.request.FlightRequest;
 import com.example.ryanair.model.InterconnectedFlight;
 import com.example.ryanair.model.Route;
 import com.example.ryanair.model.response.DirectFlightResponse;
@@ -23,7 +23,7 @@ public class InterconnectionsService {
 
     private final InterfazSchedulesAPI schedulesAPI;
     private final InterfazRoutesAPI routesAPI;
-    private static final long MINIMUM_HOURS_OF_STOP = 2;
+    public static final long MINIMUM_HOURS_OF_STOP = 2;
     public final static int MAX_NUM_OF_STOPS = 1;
     public final static int MAX_NUM_OF_INTERCONNECTED_FLIGHTS = MAX_NUM_OF_STOPS + 1;
 
@@ -118,8 +118,6 @@ public class InterconnectionsService {
 
         return interconnectedFlightList;
     }
-
-    // getConnectedAirports returns a list of all the airports' IATA codes of the possible interconnected flights.
 
     /**
      * Gets a list of all the airports' IATA codes that can be a stop in possible interconnected flights.

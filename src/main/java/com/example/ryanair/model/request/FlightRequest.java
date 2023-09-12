@@ -1,4 +1,4 @@
-package com.example.ryanair.model;
+package com.example.ryanair.model.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

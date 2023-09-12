@@ -2,13 +2,12 @@ package com.example.ryanair.client;
 
 import com.example.ryanair.client.model.ScheduleResponse;
 import com.example.ryanair.model.Flight;
-import com.example.ryanair.model.FlightRequest;
+import com.example.ryanair.model.request.FlightRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.lang.annotation.Documented;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;

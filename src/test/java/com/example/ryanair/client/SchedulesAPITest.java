@@ -1,7 +1,7 @@
 package com.example.ryanair.client;
 
 import com.example.ryanair.model.Flight;
-import com.example.ryanair.model.FlightRequest;
+import com.example.ryanair.model.request.FlightRequest;
 import com.example.ryanair.utils.TestUtils;
 import lombok.SneakyThrows;
 import org.json.simple.JSONObject;

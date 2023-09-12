@@ -1,7 +1,7 @@
 package com.example.ryanair.controller;
 
 import com.example.ryanair.exception.InvalidInputException;
-import com.example.ryanair.model.FlightRequest;
+import com.example.ryanair.model.request.FlightRequest;
 import com.example.ryanair.model.response.FlightResponse;
 import com.example.ryanair.service.InterconnectionsService;
 import lombok.extern.log4j.Log4j2;
