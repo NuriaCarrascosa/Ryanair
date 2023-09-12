@@ -1,7 +1,7 @@
 package com.example.ryanair.controller;
 
 import com.example.ryanair.exception.InvalidInputException;
-import com.example.ryanair.model.FlightsRequest;
+import com.example.ryanair.model.FlightRequest;
 import com.example.ryanair.model.response.FlightResponse;
 import com.example.ryanair.service.InterconnectionsService;
 import lombok.extern.log4j.Log4j2;
@@ -37,7 +37,7 @@ public class InterconnectionsController {
         try {
             checkInputParameters(departure, arrival, departureDateTime, arrivalDateTime);
             return this.interconnectionsService.getInterconnections(
-                    new FlightsRequest(
+                    new FlightRequest(
                             departure,
                             arrival,
                             LocalDateTime.parse(departureDateTime, ISO_DATE_TIME_FORMAT),

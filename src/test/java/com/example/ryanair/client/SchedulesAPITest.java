@@ -1,7 +1,7 @@
 package com.example.ryanair.client;
 
 import com.example.ryanair.model.Flight;
-import com.example.ryanair.model.FlightsRequest;
+import com.example.ryanair.model.FlightRequest;
 import com.example.ryanair.utils.TestUtils;
 import lombok.SneakyThrows;
 import org.json.simple.JSONObject;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 public class SchedulesAPITest {
 
     private static SchedulesAPI schedulesAPITestee;
-    private static FlightsRequest interconnectedFlightsRequest;
+    private static FlightRequest interconnectedFlightsRequest;
     private static final String FLIGHT_NUMBER = "1926";
     private static final String DEPARTURE = "DUB";
     private static final String ARRIVAL = "WRO";
@@ -48,7 +48,7 @@ public class SchedulesAPITest {
         MockitoAnnotations.openMocks(this);
         schedulesAPITestee = new SchedulesAPI(restTemplateMock);
 
-        interconnectedFlightsRequest = new FlightsRequest(DEPARTURE, ARRIVAL, DEPARTURE_DATE_TIME, ARRIVAL_DATE_TIME);
+        interconnectedFlightsRequest = new FlightRequest(DEPARTURE, ARRIVAL, DEPARTURE_DATE_TIME, ARRIVAL_DATE_TIME);
     }
 
     @SneakyThrows

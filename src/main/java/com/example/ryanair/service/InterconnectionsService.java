@@ -3,7 +3,7 @@ package com.example.ryanair.service;
 import com.example.ryanair.client.InterfazRoutesAPI;
 import com.example.ryanair.client.InterfazSchedulesAPI;
 import com.example.ryanair.model.Flight;
-import com.example.ryanair.model.FlightsRequest;
+import com.example.ryanair.model.FlightRequest;
 import com.example.ryanair.model.InterconnectedFlight;
 import com.example.ryanair.model.Route;
 import com.example.ryanair.model.response.DirectFlightResponse;
@@ -32,7 +32,8 @@ public class InterconnectionsService {
         this.routesAPI = routesAPI;
     }
 
-    public List<FlightResponse> getInterconnections(FlightsRequest flightsRequest) throws RestClientException {
+
+    public List<FlightResponse> getInterconnections(FlightRequest flightsRequest) throws RestClientException {
 
         List<Flight> directFlightList = getDirectFlights(flightsRequest);
         List<InterconnectedFlight> interconnectedFlights = getInterconnectedFlights(flightsRequest);
@@ -45,7 +46,8 @@ public class InterconnectionsService {
         return flightsResponseList;
     }
 
-    private List<Flight> getDirectFlights(FlightsRequest flightsRequest) throws RestClientException {
+
+    private List<Flight> getDirectFlights(FlightRequest flightsRequest) throws RestClientException {
         List<Flight> flightScheduleList = schedulesAPI.getAllSchedules(flightsRequest);
 
         return flightScheduleList.stream().filter(flight ->
@@ -54,39 +56,40 @@ public class InterconnectionsService {
     }
 
 
-    private List<InterconnectedFlight> getInterconnectedFlights(FlightsRequest flightsRequest) throws RestClientException {
+    private List<InterconnectedFlight> getInterconnectedFlights(FlightRequest flightsRequest) throws RestClientException {
 
         List<String> connectedAirports = getConnectedAirports(flightsRequest);
         List<InterconnectedFlight> interconnectedFlightList = new ArrayList<>();
 
         for (String stopAirport : connectedAirports) {
 
-            FlightsRequest firstFlightsRequest = new FlightsRequest(
+            FlightRequest firstFlightsRequest = new FlightRequest(
                     flightsRequest.getDeparture(),
                     stopAirport,
                     flightsRequest.getDepartureDateTimeRequested(),
                     flightsRequest.getArrivalDateTimeRequested());
 
-            List<Flight> possibleFirstFlights = schedulesAPI.getAllSchedules(firstFlightsRequest);
+            List<Flight> possibleFirstFlights = schedulesAPI.getAllSchedulesFromDepartureToArrival(firstFlightsRequest);
 
             if(!possibleFirstFlights.isEmpty()){
 
-                FlightsRequest secondFlightsRequest = new FlightsRequest(
+                FlightRequest secondFlightsRequest = new FlightRequest(
                         stopAirport,
                         flightsRequest.getArrival(),
                         flightsRequest.getDepartureDateTimeRequested(),
                         flightsRequest.getArrivalDateTimeRequested());
 
-                List<Flight> possibleSecondFlights = schedulesAPI.getAllSchedules(secondFlightsRequest);
+                List<Flight> possibleSecondFlights = schedulesAPI.getAllSchedulesFromDepartureToArrival(secondFlightsRequest);
 
                 interconnectedFlightList.addAll(getInterconnectedFlightsByStop(flightsRequest, possibleFirstFlights, possibleSecondFlights));
+
             }
         }
 
         return interconnectedFlightList;
     }
 
-    private List<InterconnectedFlight> getInterconnectedFlightsByStop(FlightsRequest flightsRequest,
+    private List<InterconnectedFlight> getInterconnectedFlightsByStop(FlightRequest flightsRequest,
                                                                       List<Flight> possibleFirstFlights,
                                                                       List<Flight> possibleSecondFlights) {
 
@@ -117,7 +120,14 @@ public class InterconnectionsService {
     }
 
     // getConnectedAirports returns a list of all the airports' IATA codes of the possible interconnected flights.
-    private List<String> getConnectedAirports(FlightsRequest flightsRequest) throws RestClientException {
+
+    /**
+     * Gets a list of all the airports' IATA codes that can be a stop in possible interconnected flights.
+     * @param flightsRequest
+     * @return List<String>
+     * @throws RestClientException
+     */
+    private List<String> getConnectedAirports(FlightRequest flightsRequest) throws RestClientException {
         List<Route> routeList = routesAPI.getAllRoutes();
 
         return routeList.stream().filter(route -> route.getAirportFrom().equals(flightsRequest.getDeparture()) && routeList.stream()

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-public class FlightsRequest {
+public class FlightRequest {
     String departure;
     String arrival;
     LocalDateTime departureDateTimeRequested;
