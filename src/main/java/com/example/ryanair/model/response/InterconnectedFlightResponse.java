@@ -5,10 +5,11 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class InterconnectedFlightsResponse extends FlightsResponse {
+public class InterconnectedFlightResponse extends FlightResponse {
 
-    public InterconnectedFlightsResponse(int stops, List<FlightInfoResponse> legs) {
+    public InterconnectedFlightResponse(int stops, List<FlightInfoResponse> legs) {
         this.stops = stops;
         this.legs = legs;
     }
+
 }

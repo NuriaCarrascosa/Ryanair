@@ -2,7 +2,7 @@ package com.example.ryanair.client;
 
 import com.example.ryanair.client.model.ScheduleResponse;
 import com.example.ryanair.model.Flight;
-import com.example.ryanair.model.InterconnectedFlightsRequest;
+import com.example.ryanair.model.FlightsRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -21,7 +21,7 @@ public class SchedulesAPI implements InterfazSchedulesAPI {
         this.restTemplate = restTemplate;
     }
 
-    public List<Flight> getAllSchedules(InterconnectedFlightsRequest interconnectedFlightsRequest) throws RestClientException {
+    public List<Flight> getAllSchedules(FlightsRequest interconnectedFlightsRequest) throws RestClientException {
 
         List<Flight> flightList = getResponse(interconnectedFlightsRequest).toFlightList(interconnectedFlightsRequest.getDepartureDateTimeRequested().getYear());
 
@@ -38,7 +38,7 @@ public class SchedulesAPI implements InterfazSchedulesAPI {
     }
      */
 
-    private ScheduleResponse getResponse(InterconnectedFlightsRequest interconnectedFlightsRequest) throws RestClientException {
+    private ScheduleResponse getResponse(FlightsRequest interconnectedFlightsRequest) throws RestClientException {
         String uri = BASE_SCHEDULES_API_URI
                 + interconnectedFlightsRequest.getDeparture() + "/"
                 + interconnectedFlightsRequest.getArrival()

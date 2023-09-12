@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 public class FlightInfoResponse {
+
     private String departureAirport;
     private String arrivalAirport;
     private LocalDateTime departureDateTime;

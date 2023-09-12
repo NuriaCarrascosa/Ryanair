@@ -14,6 +14,7 @@ import java.util.List;
 public class RoutesAPI implements InterfazRoutesAPI {
 
     public static final String ROUTES_API_URI = "https://services-api.ryanair.com/views/locate/3/routes";
+    private static final String OPERATOR = "RYANAIR";
     private final RestTemplate restTemplate;
 
     public RoutesAPI(RestTemplate restTemplate) {
@@ -21,7 +22,8 @@ public class RoutesAPI implements InterfazRoutesAPI {
     }
 
     public List<Route> getAllRoutes() throws RestClientException {
-        return Arrays.stream(restTemplate.getForObject(ROUTES_API_URI, Route[].class)).toList();
+        return Arrays.stream(restTemplate.getForObject(ROUTES_API_URI, Route[].class)).toList().stream()
+                .filter(route -> route.getOperator().equals(OPERATOR) && route.getConnectingAirport()==null).toList();
     }
 
 }

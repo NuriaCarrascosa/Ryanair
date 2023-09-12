@@ -1,28 +1,17 @@
 package com.example.ryanair.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
-@Getter
-@Setter
-public class InterconnectedFlight extends Flight {
+@Data
+@AllArgsConstructor
+public class InterconnectedFlight {
 
-    //-> List<Flight> flights;
+    private List<Flight> interconnectedFlight;
 
-    private String secondFlightNumber;
-    private String stopAirport;
-    private LocalDateTime stopArrivalDateTime;
-    private LocalDateTime stopDepartureDateTime;
-
-    public InterconnectedFlight(String firstFlightNumber, LocalDateTime departureDateTime, LocalDateTime arrivalDateTime,
-                                String departure, String arrival, String secondFlightNumber, String stopAirport,
-                                LocalDateTime stopArrivalDateTime, LocalDateTime stopDepartureDateTime) {
-        super(firstFlightNumber, departureDateTime, arrivalDateTime, departure, arrival);
-        this.secondFlightNumber = secondFlightNumber;
-        this.stopAirport = stopAirport;
-        this.stopArrivalDateTime = stopArrivalDateTime;
-        this.stopDepartureDateTime = stopDepartureDateTime;
+    public Flight getFlight(int i) {
+        return interconnectedFlight.get(i);
     }
 }

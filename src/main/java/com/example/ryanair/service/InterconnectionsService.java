@@ -2,10 +2,16 @@ package com.example.ryanair.service;
 
 import com.example.ryanair.client.InterfazRoutesAPI;
 import com.example.ryanair.client.InterfazSchedulesAPI;
-import com.example.ryanair.model.*;
-import com.example.ryanair.model.response.*;
-import org.json.JSONException;
+import com.example.ryanair.model.Flight;
+import com.example.ryanair.model.FlightsRequest;
+import com.example.ryanair.model.InterconnectedFlight;
+import com.example.ryanair.model.Route;
+import com.example.ryanair.model.response.DirectFlightResponse;
+import com.example.ryanair.model.response.FlightInfoResponse;
+import com.example.ryanair.model.response.FlightResponse;
+import com.example.ryanair.model.response.InterconnectedFlightResponse;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,102 +24,89 @@ public class InterconnectionsService {
     private final InterfazSchedulesAPI schedulesAPI;
     private final InterfazRoutesAPI routesAPI;
     private static final long MINIMUM_HOURS_OF_STOP = 2;
-
+    public final static int MAX_NUM_OF_STOPS = 1;
+    public final static int MAX_NUM_OF_INTERCONNECTED_FLIGHTS = MAX_NUM_OF_STOPS + 1;
 
     public InterconnectionsService(InterfazSchedulesAPI schedulesAPI, InterfazRoutesAPI routesAPI) {
         this.schedulesAPI = schedulesAPI;
         this.routesAPI = routesAPI;
     }
 
-    public InterconnectionsResponse getInterconnections(InterconnectedFlightsRequest interconnectedFlightsRequest) throws JSONException {
+    public List<FlightResponse> getInterconnections(FlightsRequest flightsRequest) throws RestClientException {
 
-        List<Flight> directFlightList = getDirectFlights(interconnectedFlightsRequest);
+        List<Flight> directFlightList = getDirectFlights(flightsRequest);
+        List<InterconnectedFlight> interconnectedFlights = getInterconnectedFlights(flightsRequest);
 
-        List<InterconnectedFlight> interconnectedFlights = getInterconnectedFlights(interconnectedFlightsRequest);
+        List<FlightResponse> flightsResponseList = toDirectFlightResponseList(directFlightList);
+        List<FlightResponse> interconnectedFlightsResponseList = toInterconnectedFlightResponseList(interconnectedFlights);
 
-        List<FlightInfoResponse> directFlightInfoResponseList = parseFlightListToFlightInfoResponseList(directFlightList);
+        flightsResponseList.addAll(interconnectedFlightsResponseList);
 
-        FlightsResponse directFlightsResponse = new DirectFlightsResponse(directFlightInfoResponseList);
-
-        List<FlightInfoResponse> interconnectedFlightInfoResponseList = parseInterconnectedFlightListToFlightInfoResponseList(interconnectedFlights);
-
-        FlightsResponse interconnectedFlightsResponse = new InterconnectedFlightsResponse(1, interconnectedFlightInfoResponseList);
-
-        List<FlightsResponse> listResponse = new ArrayList<>();
-        listResponse.add(directFlightsResponse);
-        listResponse.add(interconnectedFlightsResponse);
-
-        return new InterconnectionsResponse(listResponse);
+        return flightsResponseList;
     }
 
-    private List<Flight> getDirectFlights(InterconnectedFlightsRequest interconnectedFlightsRequest) throws JSONException {
-        List<Flight> flightScheduleList = schedulesAPI.getAllSchedules(interconnectedFlightsRequest);
+    private List<Flight> getDirectFlights(FlightsRequest flightsRequest) throws RestClientException {
+        List<Flight> flightScheduleList = schedulesAPI.getAllSchedules(flightsRequest);
 
         return flightScheduleList.stream().filter(flight ->
-                !flight.getDepartureDateTime().isBefore(interconnectedFlightsRequest.getDepartureDateTimeRequested()) &&
-                        !flight.getArrivalDateTime().isAfter(interconnectedFlightsRequest.getArrivalDateTimeRequested())).toList();
+                !flight.getDepartureDateTime().isBefore(flightsRequest.getDepartureDateTimeRequested()) &&
+                        !flight.getArrivalDateTime().isAfter(flightsRequest.getArrivalDateTimeRequested())).toList();
     }
 
 
-    private List<InterconnectedFlight> getInterconnectedFlights(InterconnectedFlightsRequest interconnectedFlightsRequest) throws JSONException {
+    private List<InterconnectedFlight> getInterconnectedFlights(FlightsRequest flightsRequest) throws RestClientException {
 
+        List<String> connectedAirports = getConnectedAirports(flightsRequest);
         List<InterconnectedFlight> interconnectedFlightList = new ArrayList<>();
-
-        List<String> connectedAirports = getConnectedAirports(interconnectedFlightsRequest);
 
         for (String stopAirport : connectedAirports) {
 
-            InterconnectedFlightsRequest firstFlightsRequest = new InterconnectedFlightsRequest(
-                    interconnectedFlightsRequest.getDeparture(),
+            FlightsRequest firstFlightsRequest = new FlightsRequest(
+                    flightsRequest.getDeparture(),
                     stopAirport,
-                    interconnectedFlightsRequest.getDepartureDateTimeRequested(),
-                    interconnectedFlightsRequest.getArrivalDateTimeRequested());
+                    flightsRequest.getDepartureDateTimeRequested(),
+                    flightsRequest.getArrivalDateTimeRequested());
 
-            List<Flight> possibleArrivalAirportStop = schedulesAPI.getAllSchedules(firstFlightsRequest);
+            List<Flight> possibleFirstFlights = schedulesAPI.getAllSchedules(firstFlightsRequest);
 
-            List<Flight> possibleDepartureAirportStop;
+            if(!possibleFirstFlights.isEmpty()){
 
-            if(!possibleArrivalAirportStop.isEmpty()){
-                InterconnectedFlightsRequest secondFlightsRequest = new InterconnectedFlightsRequest(
+                FlightsRequest secondFlightsRequest = new FlightsRequest(
                         stopAirport,
-                        interconnectedFlightsRequest.getArrival(),
-                        interconnectedFlightsRequest.getDepartureDateTimeRequested(),
-                        interconnectedFlightsRequest.getArrivalDateTimeRequested());
+                        flightsRequest.getArrival(),
+                        flightsRequest.getDepartureDateTimeRequested(),
+                        flightsRequest.getArrivalDateTimeRequested());
 
-                possibleDepartureAirportStop = schedulesAPI.getAllSchedules(secondFlightsRequest);
+                List<Flight> possibleSecondFlights = schedulesAPI.getAllSchedules(secondFlightsRequest);
 
-                interconnectedFlightList = getInterconnectedFlightsByStop(interconnectedFlightsRequest, interconnectedFlightList, possibleArrivalAirportStop, possibleDepartureAirportStop);
-
+                interconnectedFlightList.addAll(getInterconnectedFlightsByStop(flightsRequest, possibleFirstFlights, possibleSecondFlights));
             }
-
         }
 
         return interconnectedFlightList;
     }
 
-    private List<InterconnectedFlight> getInterconnectedFlightsByStop(InterconnectedFlightsRequest interconnectedFlightsRequest,
-                                                                      List<InterconnectedFlight> interconnectedFlightList,
-                                                                      List<Flight> possibleArrivalAirportStop,
-                                                                      List<Flight> possibleDepartureAirportStop) {
-        for (Flight firstFlight : possibleArrivalAirportStop) {
+    private List<InterconnectedFlight> getInterconnectedFlightsByStop(FlightsRequest flightsRequest,
+                                                                      List<Flight> possibleFirstFlights,
+                                                                      List<Flight> possibleSecondFlights) {
 
-            if(!firstFlight.getDepartureDateTime().isBefore(interconnectedFlightsRequest.getDepartureDateTimeRequested())){
+        List<InterconnectedFlight> interconnectedFlightList = new ArrayList<>();
 
-                for (Flight secondFlight : possibleDepartureAirportStop){
+        for (Flight firstFlight : possibleFirstFlights) {
 
-                    if(!secondFlight.getArrivalDateTime().isAfter(interconnectedFlightsRequest.getArrivalDateTimeRequested())){
+            if(!firstFlight.getDepartureDateTime().isBefore(flightsRequest.getDepartureDateTimeRequested())){
+
+                for (Flight secondFlight : possibleSecondFlights){
+
+                    if(!secondFlight.getArrivalDateTime().isAfter(flightsRequest.getArrivalDateTimeRequested())){
 
                         if(!secondFlight.getDepartureDateTime().isBefore(firstFlight.getArrivalDateTime().plusHours(MINIMUM_HOURS_OF_STOP))){
-                            interconnectedFlightList.add(new InterconnectedFlight(
-                                    firstFlight.getFlightNumber(),
-                                    firstFlight.getDepartureDateTime(),
-                                    secondFlight.getArrivalDateTime(),
-                                    firstFlight.getDeparture(),
-                                    secondFlight.getArrival(),
-                                    secondFlight.getFlightNumber(),
-                                    firstFlight.getArrival(),
-                                    firstFlight.getArrivalDateTime(),
-                                    secondFlight.getDepartureDateTime()));
+
+                            List<Flight> flightsInterconnected = new ArrayList<>(MAX_NUM_OF_INTERCONNECTED_FLIGHTS);
+                            flightsInterconnected.add(firstFlight);
+                            flightsInterconnected.add(secondFlight);
+
+                            interconnectedFlightList.add(new InterconnectedFlight(flightsInterconnected));
                         }
                     }
                 }
@@ -123,47 +116,36 @@ public class InterconnectionsService {
         return interconnectedFlightList;
     }
 
-    private List<String> getConnectedAirports(InterconnectedFlightsRequest interconnectedFlightsRequest) throws JSONException {
+    // getConnectedAirports returns a list of all the airports' IATA codes of the possible interconnected flights.
+    private List<String> getConnectedAirports(FlightsRequest flightsRequest) throws RestClientException {
         List<Route> routeList = routesAPI.getAllRoutes();
 
-        System.out.println(routeList);
-
-        // connectedAirports is a list of all the airports' IATA codes of the possible interconnected flights.
-        List<String> connectedAirports = routeList.stream().filter(route -> route.getAirportFrom().equals(interconnectedFlightsRequest.getDeparture()) && routeList.stream()
-                .anyMatch(route1 -> route1.getAirportFrom().equals(route.getAirportTo()) && route1.getAirportTo().equals(interconnectedFlightsRequest.getArrival())))
+        return routeList.stream().filter(route -> route.getAirportFrom().equals(flightsRequest.getDeparture()) && routeList.stream()
+                .anyMatch(route1 -> route1.getAirportFrom().equals(route.getAirportTo()) && route1.getAirportTo().equals(flightsRequest.getArrival())))
                 .map(Route::getAirportTo).toList();
-        return connectedAirports;
     }
 
-    private List<FlightInfoResponse> parseFlightListToFlightInfoResponseList(List<Flight> flightList){
-        List<FlightInfoResponse> flightInfoResponseList = new ArrayList<>();
+    private List<FlightResponse> toDirectFlightResponseList(List<Flight> flightList){
+        List<FlightResponse> directFlightsResponseList = new ArrayList<>();
 
         for (Flight flight : flightList){
-            flightInfoResponseList.add(parseFlightToFlightInfoResponse(flight));
+            directFlightsResponseList.add(new DirectFlightResponse(parseFlightToFlightInfoResponse(flight)));
         }
 
-        return flightInfoResponseList;
+        return directFlightsResponseList;
     }
 
-    private List<FlightInfoResponse> parseInterconnectedFlightListToFlightInfoResponseList(List<InterconnectedFlight> interconnectedFlights) {
-        List<FlightInfoResponse> flightInfoResponseList = new ArrayList<>();
+    private List<FlightResponse> toInterconnectedFlightResponseList(List<InterconnectedFlight> interconnectedFlights) {
+        List<FlightResponse> flightInfoResponseList = new ArrayList<>();
 
         for (InterconnectedFlight interconnectedFlight : interconnectedFlights) {
-            Flight firstFlight = new Flight(
-                    interconnectedFlight.getFlightNumber(),
-                    interconnectedFlight.getDepartureDateTime(),
-                    interconnectedFlight.getStopArrivalDateTime(),
-                    interconnectedFlight.getDeparture(),
-                    interconnectedFlight.getStopAirport());
-            flightInfoResponseList.add(parseFlightToFlightInfoResponse(firstFlight));
+            List<FlightInfoResponse> interconnectedFlightInfoResponse = new ArrayList<>(MAX_NUM_OF_INTERCONNECTED_FLIGHTS);
 
-            Flight secondFlight = new Flight(
-                    interconnectedFlight.getSecondFlightNumber(),
-                    interconnectedFlight.getStopDepartureDateTime(),
-                    interconnectedFlight.getArrivalDateTime(),
-                    interconnectedFlight.getStopAirport(),
-                    interconnectedFlight.getArrival());
-            flightInfoResponseList.add(parseFlightToFlightInfoResponse(secondFlight));
+            for (int i = 0; i < MAX_NUM_OF_INTERCONNECTED_FLIGHTS; i++){
+                interconnectedFlightInfoResponse.add(parseFlightToFlightInfoResponse(interconnectedFlight.getFlight(i)));
+            }
+
+            flightInfoResponseList.add(new InterconnectedFlightResponse(MAX_NUM_OF_STOPS, interconnectedFlightInfoResponse));
         }
 
         return flightInfoResponseList;

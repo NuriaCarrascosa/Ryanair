@@ -1,8 +1,8 @@
 package com.example.ryanair.controller;
 
 import com.example.ryanair.exception.InvalidInputException;
-import com.example.ryanair.model.InterconnectedFlightsRequest;
-import com.example.ryanair.model.response.InterconnectionsResponse;
+import com.example.ryanair.model.FlightsRequest;
+import com.example.ryanair.model.response.FlightResponse;
 import com.example.ryanair.service.InterconnectionsService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 @RestController
@@ -28,15 +29,15 @@ public class InterconnectionsController {
 
     @GetMapping("/ryanair/interconnections")
     @ResponseBody
-    public InterconnectionsResponse getInterconnections(@RequestParam String departure, String arrival,
-                                                              String departureDateTime, String arrivalDateTime){
+    public List<FlightResponse> getInterconnections(@RequestParam String departure, String arrival,
+                                                    String departureDateTime, String arrivalDateTime){
 
         // TODO: Ver si se puede llamar al Get con la clase InterconnectedFlightRequest
 
         try {
             checkInputParameters(departure, arrival, departureDateTime, arrivalDateTime);
             return this.interconnectionsService.getInterconnections(
-                    new InterconnectedFlightsRequest(
+                    new FlightsRequest(
                             departure,
                             arrival,
                             LocalDateTime.parse(departureDateTime, ISO_DATE_TIME_FORMAT),
