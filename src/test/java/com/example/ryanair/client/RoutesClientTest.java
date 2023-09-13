@@ -15,14 +15,14 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.ryanair.client.RoutesAPI.ROUTES_API_URI;
+import static com.example.ryanair.client.RoutesClientImpl.ROUTES_CLIENT_URI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-public class RoutesAPITest {
+public class RoutesClientTest {
 
-    private static RoutesAPI routesAPITestee;
+    private static RoutesClientImpl testee;
     private static final boolean NEW_ROUTE = false;
     private static final boolean SEASONAL_ROUTE = false;
     private static final String OPERATOR = "RYANAIR";
@@ -34,7 +34,7 @@ public class RoutesAPITest {
     @BeforeEach
     void initialize(){
         MockitoAnnotations.openMocks(this);
-        routesAPITestee = new RoutesAPI(restTemplateMock);
+        testee = new RoutesClientImpl(restTemplateMock);
     }
 
     @SneakyThrows
@@ -42,7 +42,7 @@ public class RoutesAPITest {
     void getAllRoutes_withAllParameters_returnsRouteList(){
         //Setup
         JSONArray jsonRoute = (JSONArray) TestUtils.parseJSONFile("route-json.txt");
-        when(restTemplateMock.getForObject(ROUTES_API_URI, String.class)).thenReturn(jsonRoute.toString());
+        when(restTemplateMock.getForObject(ROUTES_CLIENT_URI, String.class)).thenReturn(jsonRoute.toString());
 
         List<Route> expectedRouteList = new ArrayList<>();
         expectedRouteList.add(newRoute("LUZ","STN"));
@@ -50,11 +50,11 @@ public class RoutesAPITest {
         expectedRouteList.add(newRoute("DUB","WRO"));
 
         //Test
-        List<Route> resultRouteList = routesAPITestee.getAllRoutes();
+        List<Route> resultRouteList = testee.getAllRoutes();
 
         //Verify
         assertEquals(expectedRouteList, resultRouteList);
-        verify(restTemplateMock, times(1)).getForObject(ROUTES_API_URI, String.class);
+        verify(restTemplateMock, times(1)).getForObject(ROUTES_CLIENT_URI, String.class);
     }
 
     @SneakyThrows
@@ -72,13 +72,13 @@ public class RoutesAPITest {
     void getAllRoutes_withAllParameters_invalidJSONObjects_throwException(String fileName){
         //Setup
         JSONArray jsonRoute = (JSONArray) TestUtils.parseJSONFile(fileName);
-        when(restTemplateMock.getForObject(ROUTES_API_URI, String.class)).thenReturn(jsonRoute.toString());
+        when(restTemplateMock.getForObject(ROUTES_CLIENT_URI, String.class)).thenReturn(jsonRoute.toString());
 
         //Test
-        assertThrows(Exception.class, () -> routesAPITestee.getAllRoutes());
+        assertThrows(Exception.class, () -> testee.getAllRoutes());
 
         //Verify
-        verify(restTemplateMock, times(1)).getForObject(ROUTES_API_URI, String.class);
+        verify(restTemplateMock, times(1)).getForObject(ROUTES_CLIENT_URI, String.class);
     }
 
     private Route newRoute(String airportFrom, String airportTo){

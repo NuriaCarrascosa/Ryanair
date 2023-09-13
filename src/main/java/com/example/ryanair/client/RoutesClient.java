@@ -5,7 +5,7 @@ import org.springframework.web.client.RestClientException;
 
 import java.util.List;
 
-public interface InterfazRoutesAPI {
+public interface RoutesClient {
 
     List<Route> getAllRoutes() throws RestClientException;
 

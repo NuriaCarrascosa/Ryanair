@@ -14,8 +14,14 @@ public class ScheduleResponse {
     private int month;
     private List<FlightPerDay> days;
 
-    public List<Flight> toFlightList(int year){
-        return days.stream().flatMap(flightPerDay -> flightPerDay.toFlightList(year, month).stream()).toList();
+    public List<Flight> toFlightList(int year, String arrival, String departure){
+        List<Flight> flightList = days.stream().flatMap(flightPerDay -> flightPerDay.toFlightList(year, month).stream()).toList();
+
+        return flightList.stream().map(flight -> {
+            flight.setArrival(arrival);
+            flight.setDeparture(departure);
+            return flight;
+        }).toList();
     }
 
 }

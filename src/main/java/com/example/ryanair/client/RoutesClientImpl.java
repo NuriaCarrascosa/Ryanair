@@ -11,18 +11,18 @@ import java.util.List;
 
 @Component
 @Log4j2
-public class RoutesAPI implements InterfazRoutesAPI {
+public class RoutesClientImpl implements RoutesClient {
 
-    public static final String ROUTES_API_URI = "https://services-api.ryanair.com/views/locate/3/routes";
+    public static final String ROUTES_CLIENT_URI = "https://services-api.ryanair.com/views/locate/3/routes";
     private static final String OPERATOR = "RYANAIR";
     private final RestTemplate restTemplate;
 
-    public RoutesAPI(RestTemplate restTemplate) {
+    public RoutesClientImpl(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     public List<Route> getAllRoutes() throws RestClientException {
-        return Arrays.stream(restTemplate.getForObject(ROUTES_API_URI, Route[].class)).toList().stream()
+        return Arrays.stream(restTemplate.getForObject(ROUTES_CLIENT_URI, Route[].class)).toList().stream()
                 .filter(route -> route.getOperator().equals(OPERATOR) && route.getConnectingAirport()==null).toList();
     }
 

@@ -1,7 +1,7 @@
 package com.example.ryanair.service;
 
-import com.example.ryanair.client.InterfazRoutesAPI;
-import com.example.ryanair.client.InterfazSchedulesAPI;
+import com.example.ryanair.client.RoutesClient;
+import com.example.ryanair.client.SchedulesClient;
 import com.example.ryanair.model.Flight;
 import com.example.ryanair.model.request.FlightRequest;
 import com.example.ryanair.model.InterconnectedFlight;
@@ -13,6 +13,7 @@ import com.example.ryanair.model.response.InterconnectedFlightResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,15 +22,15 @@ import static com.example.ryanair.model.response.FlightInfoResponse.parseFlightT
 @Service
 public class InterconnectionsService {
 
-    private final InterfazSchedulesAPI schedulesAPI;
-    private final InterfazRoutesAPI routesAPI;
+    private final SchedulesClient schedulesClient;
+    private final RoutesClient routesClient;
     public static final long MINIMUM_HOURS_OF_STOP = 2;
     public final static int MAX_NUM_OF_STOPS = 1;
     public final static int MAX_NUM_OF_INTERCONNECTED_FLIGHTS = MAX_NUM_OF_STOPS + 1;
 
-    public InterconnectionsService(InterfazSchedulesAPI schedulesAPI, InterfazRoutesAPI routesAPI) {
-        this.schedulesAPI = schedulesAPI;
-        this.routesAPI = routesAPI;
+    public InterconnectionsService(SchedulesClient schedulesClient, RoutesClient routesClient) {
+        this.schedulesClient = schedulesClient;
+        this.routesClient = routesClient;
     }
 
 
@@ -48,11 +49,12 @@ public class InterconnectionsService {
 
 
     private List<Flight> getDirectFlights(FlightRequest flightsRequest) throws RestClientException {
-        List<Flight> flightScheduleList = schedulesAPI.getAllSchedules(flightsRequest);
+        List<Flight> flightScheduleList = schedulesClient.getAllSchedules(flightsRequest);
 
         return flightScheduleList.stream().filter(flight ->
-                !flight.getDepartureDateTime().isBefore(flightsRequest.getDepartureDateTimeRequested()) &&
-                        !flight.getArrivalDateTime().isAfter(flightsRequest.getArrivalDateTimeRequested())).toList();
+                departuresWhenOrAfterRequested(flightsRequest.getDepartureDateTimeRequested(), flight.getDepartureDateTime())
+                        && arrivesBeforeOrWhenRequested(flightsRequest.getArrivalDateTimeRequested(), flight.getArrivalDateTime())
+                ).toList();
     }
 
 
@@ -69,7 +71,7 @@ public class InterconnectionsService {
                     flightsRequest.getDepartureDateTimeRequested(),
                     flightsRequest.getArrivalDateTimeRequested());
 
-            List<Flight> possibleFirstFlights = schedulesAPI.getAllSchedulesFromDepartureToArrival(firstFlightsRequest);
+            List<Flight> possibleFirstFlights = schedulesClient.getAllSchedules(firstFlightsRequest);
 
             if(!possibleFirstFlights.isEmpty()){
 
@@ -79,7 +81,7 @@ public class InterconnectionsService {
                         flightsRequest.getDepartureDateTimeRequested(),
                         flightsRequest.getArrivalDateTimeRequested());
 
-                List<Flight> possibleSecondFlights = schedulesAPI.getAllSchedulesFromDepartureToArrival(secondFlightsRequest);
+                List<Flight> possibleSecondFlights = schedulesClient.getAllSchedules(secondFlightsRequest);
 
                 interconnectedFlightList.addAll(getInterconnectedFlightsByStop(flightsRequest, possibleFirstFlights, possibleSecondFlights));
 
@@ -97,11 +99,11 @@ public class InterconnectionsService {
 
         for (Flight firstFlight : possibleFirstFlights) {
 
-            if(!firstFlight.getDepartureDateTime().isBefore(flightsRequest.getDepartureDateTimeRequested())){
+            if(departuresWhenOrAfterRequested(flightsRequest.getDepartureDateTimeRequested(), firstFlight.getDepartureDateTime())){
 
                 for (Flight secondFlight : possibleSecondFlights){
 
-                    if(!secondFlight.getArrivalDateTime().isAfter(flightsRequest.getArrivalDateTimeRequested())){
+                    if(arrivesBeforeOrWhenRequested(flightsRequest.getArrivalDateTimeRequested(), secondFlight.getArrivalDateTime())){
 
                         if(!secondFlight.getDepartureDateTime().isBefore(firstFlight.getArrivalDateTime().plusHours(MINIMUM_HOURS_OF_STOP))){
 
@@ -119,6 +121,15 @@ public class InterconnectionsService {
         return interconnectedFlightList;
     }
 
+
+    private boolean arrivesBeforeOrWhenRequested(LocalDateTime requestedArrivalDateTime, LocalDateTime secondFlightArrivalDateTime) {
+        return !secondFlightArrivalDateTime.isAfter(requestedArrivalDateTime);
+    }
+
+    private boolean departuresWhenOrAfterRequested(LocalDateTime requestedDepartureDateTime, LocalDateTime firstFlightDepartureDateTime) {
+        return !firstFlightDepartureDateTime.isBefore(requestedDepartureDateTime);
+    }
+
     /**
      * Gets a list of all the airports' IATA codes that can be a stop in possible interconnected flights.
      * @param flightsRequest
@@ -126,7 +137,7 @@ public class InterconnectionsService {
      * @throws RestClientException
      */
     private List<String> getConnectedAirports(FlightRequest flightsRequest) throws RestClientException {
-        List<Route> routeList = routesAPI.getAllRoutes();
+        List<Route> routeList = routesClient.getAllRoutes();
 
         return routeList.stream().filter(route -> route.getAirportFrom().equals(flightsRequest.getDeparture()) && routeList.stream()
                 .anyMatch(route1 -> route1.getAirportFrom().equals(route.getAirportTo()) && route1.getAirportTo().equals(flightsRequest.getArrival())))

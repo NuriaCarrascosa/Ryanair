@@ -1,7 +1,7 @@
 package com.example.ryanair.service;
 
-import com.example.ryanair.client.InterfazRoutesAPI;
-import com.example.ryanair.client.InterfazSchedulesAPI;
+import com.example.ryanair.client.RoutesClient;
+import com.example.ryanair.client.SchedulesClient;
 import com.example.ryanair.model.request.FlightRequest;
 import com.example.ryanair.model.response.DirectFlightResponse;
 import com.example.ryanair.model.response.FlightInfoResponse;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class InterconnectionsServiceTest {
 
-    private static InterconnectionsService interconnectionsServiceTestee;
+    private static InterconnectionsService testee;
     private static FlightRequest flightsRequest;
     private static FlightResponse directFlightResponse;
     private static FlightResponse interconnectedFlightResponse;
@@ -51,15 +51,15 @@ public class InterconnectionsServiceTest {
     private static final LocalDateTime ARRIVAL_DATE_TIME = LocalDateTime.of(YEAR, MONTH, DAY, ARRIVAL_HOUR, ARRIVAL_MINUTES);
 
     @Mock
-    InterfazSchedulesAPI schedulesAPIMock;
+    SchedulesClient schedulesClientMock;
 
     @Mock
-    InterfazRoutesAPI routesAPIMock;
+    RoutesClient routesClientMock;
 
     @BeforeEach
     void initialize(){
         MockitoAnnotations.openMocks(this);
-        interconnectionsServiceTestee = new InterconnectionsService(schedulesAPIMock, routesAPIMock);
+        testee = new InterconnectionsService(schedulesClientMock, routesClientMock);
 
         flightsRequest = new FlightRequest(DEPARTURE, ARRIVAL, DEPARTURE_DATE_TIME, ARRIVAL_DATE_TIME);
 
@@ -85,7 +85,7 @@ public class InterconnectionsServiceTest {
         List<FlightResponse> expectedFlightListResponse = new ArrayList<>();
 
         //Test
-        List<FlightResponse> resultFlightListResponse = interconnectionsServiceTestee.getInterconnections(flightsRequest);
+        List<FlightResponse> resultFlightListResponse = testee.getInterconnections(flightsRequest);
 
         //Verify
         assertEquals(expectedFlightListResponse, resultFlightListResponse);
