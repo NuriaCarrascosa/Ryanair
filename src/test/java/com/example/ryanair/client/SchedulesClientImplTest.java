@@ -5,7 +5,6 @@ import com.example.ryanair.client.model.FlightSchedule;
 import com.example.ryanair.client.model.ScheduleResponse;
 import com.example.ryanair.model.Flight;
 import com.example.ryanair.model.request.FlightRequest;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -23,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-public class SchedulesClientTest {
+public class SchedulesClientImplTest {
 
     private static SchedulesClientImpl testee;
     private static FlightRequest flightRequest;
