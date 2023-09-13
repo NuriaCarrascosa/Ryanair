@@ -3,7 +3,6 @@ package com.example.ryanair.service;
 import com.example.ryanair.client.RoutesClient;
 import com.example.ryanair.client.SchedulesClient;
 import com.example.ryanair.model.Flight;
-import com.example.ryanair.model.InterconnectedFlight;
 import com.example.ryanair.model.Route;
 import com.example.ryanair.model.request.FlightRequest;
 import com.example.ryanair.model.response.DirectFlightResponse;
@@ -31,10 +30,6 @@ public class InterconnectionsServiceTest {
     private static FlightRequest flightsRequest;
     private static FlightResponse directFlightResponse;
     private static FlightResponse interconnectedFlightResponse;
-    private static FlightInfoResponse directFlightInfo;
-    private static FlightInfoResponse interconnectedFirstFlightInfo;
-    private static FlightInfoResponse interconnectedSecondFlightInfo;
-    private static List<FlightInfoResponse> interconnectedFlightLegs;
     private static final String FLIGHT_NUMBER = "1926";
     private static final String STOP_AIRPORT = "DUB";
     private static final String DEPARTURE = "MAD";
@@ -72,12 +67,12 @@ public class InterconnectionsServiceTest {
 
         flightsRequest = new FlightRequest(DEPARTURE, ARRIVAL, DEPARTURE_DATE_TIME, ARRIVAL_DATE_TIME_REQ);
 
-        directFlightInfo = new FlightInfoResponse(DEPARTURE, ARRIVAL, DEPARTURE_DATE_TIME, DIRECT_ARRIVAL_DATE_TIME);
+        FlightInfoResponse directFlightInfo = new FlightInfoResponse(DEPARTURE, ARRIVAL, DEPARTURE_DATE_TIME, DIRECT_ARRIVAL_DATE_TIME);
         directFlightResponse = new DirectFlightResponse(directFlightInfo);
 
-        interconnectedFirstFlightInfo = new FlightInfoResponse(DEPARTURE, STOP_AIRPORT, DEPARTURE_DATE_TIME, STOP_ARRIVAL_DATE_TIME);
-        interconnectedSecondFlightInfo = new FlightInfoResponse(STOP_AIRPORT, ARRIVAL, STOP_DEPARTURE_DATE_TIME, INTER_ARRIVAL_DATE_TIME);
-        interconnectedFlightLegs = new ArrayList<>();
+        FlightInfoResponse interconnectedFirstFlightInfo = new FlightInfoResponse(DEPARTURE, STOP_AIRPORT, DEPARTURE_DATE_TIME, STOP_ARRIVAL_DATE_TIME);
+        FlightInfoResponse interconnectedSecondFlightInfo = new FlightInfoResponse(STOP_AIRPORT, ARRIVAL, STOP_DEPARTURE_DATE_TIME, INTER_ARRIVAL_DATE_TIME);
+        List<FlightInfoResponse> interconnectedFlightLegs = new ArrayList<>();
         interconnectedFlightLegs.add(interconnectedFirstFlightInfo);
         interconnectedFlightLegs.add(interconnectedSecondFlightInfo);
         interconnectedFlightResponse = new InterconnectedFlightResponse(MAX_NUM_OF_STOPS, interconnectedFlightLegs);

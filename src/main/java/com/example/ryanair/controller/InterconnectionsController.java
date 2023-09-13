@@ -4,7 +4,6 @@ import com.example.ryanair.exception.InvalidInputException;
 import com.example.ryanair.model.request.FlightRequest;
 import com.example.ryanair.model.response.FlightResponse;
 import com.example.ryanair.service.InterconnectionsService;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -47,7 +45,7 @@ public class InterconnectionsController {
                             arrival,
                             LocalDateTime.parse(departureDateTime, ISO_DATE_TIME_FORMAT),
                             LocalDateTime.parse(arrivalDateTime, ISO_DATE_TIME_FORMAT)));
-        } catch (InvalidInputException invalidInputException) {
+        } catch (InvalidInputException | DateTimeParseException invalidInputException) {
             invalidInputException.printStackTrace();
             log.error(invalidInputException.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, invalidInputException.getMessage());
@@ -56,11 +54,6 @@ public class InterconnectionsController {
             restClientException.printStackTrace();
             log.error(restClientException.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, restClientException.getMessage());
-
-        } catch (DateTimeParseException dateTimeParseException) {
-            dateTimeParseException.printStackTrace();
-            log.error(dateTimeParseException.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, dateTimeParseException.getMessage());
 
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -83,23 +76,23 @@ public class InterconnectionsController {
     private void checkInputParameters(String departure, String arrival,
                                       String departureDateTime, String arrivalDateTime) throws InvalidInputException{
 
-        if(!isIATACodeValid(departure)){
+        if(isIATACodeInvalid(departure)){
             throw new InvalidInputException("Invalid input of the departure IATA code");
         }
-        if(!isIATACodeValid(arrival)){
+        if(isIATACodeInvalid(arrival)){
             throw new InvalidInputException("Invalid input of the arrival IATA code");
         }
-        if(!isDateTimeFormatValid(departureDateTime)){
+        if(isDateTimeFormatInvalid(departureDateTime)){
             throw new InvalidInputException("Invalid input of the departure Date Time");
         }
-        if(!isDateTimeFormatValid(arrivalDateTime)){
+        if(isDateTimeFormatInvalid(arrivalDateTime)){
             throw new InvalidInputException("Invalid input of the arrival Date Time");
         }
 
     }
 
-    private boolean isIATACodeValid(String iataCode){
-        return (!iataCode.isEmpty() && iataCode.length() == IATA_CODE_LENGHT && iataCode.equals(iataCode.toUpperCase()));
+    private boolean isIATACodeInvalid(String iataCode){
+        return (iataCode.isEmpty() || iataCode.length() != IATA_CODE_LENGHT || !iataCode.equals(iataCode.toUpperCase()));
     }
 
     /**
@@ -110,8 +103,8 @@ public class InterconnectionsController {
      * @return true if the String dateTime is not empty an if it matches with the ISO_DATE_TIME_FORMAT and
      * false if it does not fulfill none of these requirements
      */
-    private boolean isDateTimeFormatValid(String dateTime){
-        return !dateTime.isEmpty();
+    private boolean isDateTimeFormatInvalid(String dateTime){
+        return dateTime.isEmpty();
     }
 
 }
