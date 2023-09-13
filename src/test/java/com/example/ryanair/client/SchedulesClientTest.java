@@ -1,19 +1,20 @@
 package com.example.ryanair.client;
 
+import com.example.ryanair.client.model.FlightPerDay;
+import com.example.ryanair.client.model.FlightSchedule;
+import com.example.ryanair.client.model.ScheduleResponse;
 import com.example.ryanair.model.Flight;
 import com.example.ryanair.model.request.FlightRequest;
-import com.example.ryanair.utils.TestUtils;
 import lombok.SneakyThrows;
-import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,8 @@ import static org.mockito.Mockito.*;
 public class SchedulesClientTest {
 
     private static SchedulesClientImpl testee;
-    private static FlightRequest interconnectedFlightsRequest;
+    private static FlightRequest flightRequest;
+    private static ScheduleResponse scheduleResponse;
     private static final String FLIGHT_NUMBER = "1926";
     private static final String DEPARTURE = "DUB";
     private static final String ARRIVAL = "WRO";
@@ -48,57 +50,46 @@ public class SchedulesClientTest {
         MockitoAnnotations.openMocks(this);
         testee = new SchedulesClientImpl(restTemplateMock);
 
-        interconnectedFlightsRequest = new FlightRequest(DEPARTURE, ARRIVAL, DEPARTURE_DATE_TIME, ARRIVAL_DATE_TIME);
+        flightRequest = new FlightRequest(DEPARTURE, ARRIVAL, DEPARTURE_DATE_TIME, ARRIVAL_DATE_TIME);
+
+        FlightSchedule flightSchedule = new FlightSchedule(FLIGHT_NUMBER, LocalTime.of(DEPARTURE_HOUR, DEPARTURE_MINUTES), LocalTime.of(ARRIVAL_HOUR, ARRIVAL_MINUTES));
+        FlightPerDay flightPerDay = new FlightPerDay(DAY, List.of(flightSchedule));
+        List<FlightPerDay> flightPerDayList = new ArrayList<>();
+        flightPerDayList.add(flightPerDay);
+        scheduleResponse = new ScheduleResponse(MONTH, flightPerDayList);
     }
 
-    /*
-    @SneakyThrows
+
     @Test
     void getAllSchedules_withAllParameters_returnsFlightList() {
         //Setup
-        JSONObject jsonSchedule = (JSONObject) TestUtils.parseJSONFile("schedule-json.txt");
-        when(restTemplateMock.getForObject(URI, String.class)).thenReturn(jsonSchedule.toJSONString());
+        when(restTemplateMock.getForObject(URI, ScheduleResponse.class)).thenReturn(scheduleResponse);
 
         List<Flight> expectedFlightList = new ArrayList<>();
         expectedFlightList.add(new Flight(FLIGHT_NUMBER,
                 LocalDateTime.of(YEAR, MONTH, DAY, DEPARTURE_HOUR, DEPARTURE_MINUTES),
                 LocalDateTime.of(YEAR, MONTH, DAY, ARRIVAL_HOUR, ARRIVAL_MINUTES),
                 DEPARTURE, ARRIVAL));
-        expectedFlightList.add(new Flight(FLIGHT_NUMBER,
-                LocalDateTime.of(YEAR, MONTH, 3, 17, 25),
-                LocalDateTime.of(YEAR, MONTH, 3, 21, 0),
-                DEPARTURE, ARRIVAL));
 
         //Test
-        List<Flight> resultFlightList = testee.getAllSchedules(interconnectedFlightsRequest);
+        List<Flight> resultFlightList = testee.getAllSchedules(flightRequest);
 
         //Verify
         assertEquals(expectedFlightList, resultFlightList);
-        verify(restTemplateMock, times(1)).getForObject(URI, String.class);
+        verify(restTemplateMock, times(1)).getForObject(URI, ScheduleResponse.class);
     }
 
 
-    @SneakyThrows
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "invalidFlightNumber-schedule-json.txt",
-            "invalidDepartureTime-schedule-json.txt",
-            "invalidArrivalTime-schedule-json.txt",
-            "invalidDay-schedule-json.txt",
-            "missingField-schedule-json.txt"
-    })
-    void getAllSchedules_withAllParameters_invalidJSONObjects_throwException(String fileName) {
+    @Test
+    void getAllSchedules_withAllParameters_throwException() {
         //Setup
-        JSONObject jsonSchedule = (JSONObject) TestUtils.parseJSONFile(fileName);
-        when(restTemplateMock.getForObject(URI, String.class)).thenReturn(jsonSchedule.toJSONString());
+        when(restTemplateMock.getForObject(URI, ScheduleResponse.class)).thenThrow(RestClientException.class);
 
         //Test
-        assertThrows(Exception.class, () -> testee.getAllSchedules(interconnectedFlightsRequest));
+        assertThrows(RestClientException.class, () -> testee.getAllSchedules(flightRequest));
 
         //Verify
-        verify(restTemplateMock, times(1)).getForObject(URI, String.class);
+        verify(restTemplateMock, times(1)).getForObject(URI, ScheduleResponse.class);
     }
-
-     */
 
 }

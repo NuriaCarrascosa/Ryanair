@@ -1,9 +1,9 @@
 package com.example.ryanair.client;
 
 import com.example.ryanair.model.Route;
-import com.example.ryanair.utils.TestUtils;
 import lombok.SneakyThrows;
 import org.json.simple.JSONArray;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,7 +41,6 @@ public class RoutesClientTest {
     @Test
     void getAllRoutes_withAllParameters_returnsRouteList(){
         //Setup
-        JSONArray jsonRoute = (JSONArray) TestUtils.parseJSONFile("route-json.txt");
         when(restTemplateMock.getForObject(ROUTES_CLIENT_URI, String.class)).thenReturn(jsonRoute.toString());
 
         List<Route> expectedRouteList = new ArrayList<>();

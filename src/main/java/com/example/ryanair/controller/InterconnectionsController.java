@@ -6,14 +6,18 @@ import com.example.ryanair.model.response.FlightResponse;
 import com.example.ryanair.service.InterconnectionsService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 
@@ -33,9 +37,7 @@ public class InterconnectionsController {
     @GetMapping("/ryanair/interconnections")
     @ResponseBody
     public List<FlightResponse> getInterconnections(@RequestParam String departure, String arrival,
-                                                    String departureDateTime, String arrivalDateTime){
-
-        // TODO: Ver si se puede llamar al Get con la clase InterconnectedFlightRequest
+                                                    String departureDateTime, String arrivalDateTime) {
 
         try {
             checkInputParameters(departure, arrival, departureDateTime, arrivalDateTime);
@@ -48,15 +50,24 @@ public class InterconnectionsController {
         } catch (InvalidInputException invalidInputException) {
             invalidInputException.printStackTrace();
             log.error(invalidInputException.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, invalidInputException.getMessage());
+
         } catch (RestClientException restClientException) {
             restClientException.printStackTrace();
             log.error(restClientException.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, restClientException.getMessage());
+
+        } catch (DateTimeParseException dateTimeParseException) {
+            dateTimeParseException.printStackTrace();
+            log.error(dateTimeParseException.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, dateTimeParseException.getMessage());
+
         } catch (Exception exception) {
             exception.printStackTrace();
             log.error(exception.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
         }
 
-        return null;
     }
 
     /**
@@ -100,8 +111,7 @@ public class InterconnectionsController {
      * false if it does not fulfill none of these requirements
      */
     private boolean isDateTimeFormatValid(String dateTime){
-        String regex = "^(?:19\\d\\d|20[0-2]\\d)-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])T(?:[01]\\d|2[0-3]):[0-5]\\d$";
-        return (!dateTime.isEmpty() && dateTime.matches(regex));
+        return !dateTime.isEmpty();
     }
 
 }
