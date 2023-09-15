@@ -132,7 +132,7 @@ class InterconnectionsControllerTest {
                         new RestClientException("RestClientException msg")
                 ),
                 Arguments.of(
-                        new Exception("Exception msg")
+                        new NullPointerException("NullPointerException msg")
                 )
         );
 
