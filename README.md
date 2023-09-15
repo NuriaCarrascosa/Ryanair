@@ -1,10 +1,10 @@
-#Ryanair
+# Ryanair
 Ryanair is a Spring Boot based RESTful API application which serves information about all the possible direct and
 interconnected flights between two dates. Following the next requirements:
 - The departure airport time must not be earlier than the specified and the arrival airport time must not be after the specified.
 - Interconnected flights can only have 1 stop and the difference between the arrival and the next departure should be 2h or
 greater.
-###Endpoint
+### Endpoint
 
 - http://HOST/ryanair/interconnections?departure={departure}&arrival={arrival}&departureDateTime={departureDateTime}&arrivalDateTime={arrivalDateTime}
   - departure - A departure airport IATA code
@@ -13,13 +13,24 @@ greater.
   - arrivalDateTime - An arrival datetime in the arrival airport timezone in ISO format
   - HOST - If running locally = localhost:8080 (The port can be modified in the application.properties file)
   
-###Execution
+### Package
 
+To build the project and create the JAR executable, run `./mvnw package` or `mvn package`.
+JAR will be located in target directory.
+
+### Execution
+
+#### Using JAR
+1- Open a terminal and go to the source project directory
+
+2- Execute `java -jar target/Ryanair-0.0.1-SNAPSHOT.jar`
+
+#### Using maven
 1- Open a terminal and go to the source project directory
 
 2- Execute `./mvnw spring-boot:run` or `mvn spring-boot:run` if you have already installed it
 
-####Usage example
+#### Usage example
 
 Calling: `http://localhost:8080/ryanair/interconnections?departure=MAD&arrival=DUB&departureDateTime=2023-11-31T16:20&arrivalDateTime=2023-11-31T23:30`
 
@@ -57,7 +68,7 @@ Should return:
 ]
 ```
 
-###Tests
+### Tests
 
 1- Open a terminal and go to the source project directory
 
